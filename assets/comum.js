@@ -250,6 +250,15 @@
       " com o endereço e a chave pública do projeto no Supabase (veja o passo a passo no LEIA-ME).");
   }
 
+  // Se o config.js indicar um logotipo, ele ocupa o lugar do emblema no cabeçalho.
+  if (cfg.logo) {
+    document.querySelectorAll("[data-marca]").forEach((n) => {
+      n.classList.add("com-logo");
+      n.replaceChildren(el("img", { class: "logo", src: cfg.logo, alt: cfg.condominio || "Condomínio",
+        width: "750", height: "212", decoding: "async" }));
+    });
+  }
+
   document.querySelectorAll("[data-condominio]").forEach((n) => {
     n.textContent = cfg.condominio || "Condomínio";
   });

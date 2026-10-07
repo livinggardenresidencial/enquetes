@@ -1,25 +1,25 @@
 /* Layout: pensado primeiro para o celular. Coluna única; cada enquete é um cartão
    com três momentos (escolher, conferir, comprovante) e o gráfico ao vivo logo abaixo. */
 :root {
-  --fundo: #f2f5f0;
+  --fundo: #f4f8ec;
   --superficie: #ffffff;
-  --tinta: #16211a;
-  --suave: #5a695f;
-  --linha: #d7ded4;
-  --folha: #1e6a48;
+  --tinta: #1c2a12;
+  --suave: #55664a;
+  --linha: #d6e2c6;
+  --folha: #3d6e17;
   --folha-tinta: #ffffff;
-  --folha-leve: #e3efe7;
+  --folha-leve: #e3f2cc;
   --alerta: #9a4f12;
   --alerta-leve: #fbeedd;
   --perigo: #b3261e;
   --perigo-leve: #fbe9e7;
   /* cores das opções no gráfico, na ordem em que foram cadastradas */
-  --cor-1: #1e6a48;
+  --cor-1: #5a9a1f;
   --cor-2: #2b7c9f;
   --cor-3: #c98a1b;
   --cor-4: #8a4f8f;
   --cor-5: #c8553d;
-  --cor-6: #6b7a70;
+  --cor-6: #6f7d63;
   --titulo: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
   --texto: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --raio: 12px;
@@ -29,24 +29,24 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fundo: #101511;
-    --superficie: #19201b;
-    --tinta: #e7ede8;
-    --suave: #9aa89e;
-    --linha: #2b352e;
-    --folha: #62c496;
-    --folha-tinta: #0c1a12;
-    --folha-leve: #1d2f25;
+    --fundo: #11160c;
+    --superficie: #1a2113;
+    --tinta: #e9f0df;
+    --suave: #a3b093;
+    --linha: #2e3a22;
+    --folha: #9ad255;
+    --folha-tinta: #10200a;
+    --folha-leve: #24331a;
     --alerta: #f0b271;
     --alerta-leve: #33271a;
     --perigo: #f28b82;
     --perigo-leve: #3a1f1d;
-    --cor-1: #62c496;
+    --cor-1: #9ad255;
     --cor-2: #6cb7d7;
     --cor-3: #e5b453;
     --cor-4: #c08fc6;
     --cor-5: #ef8a73;
-    --cor-6: #9aa89e;
+    --cor-6: #a3b093;
     color-scheme: dark;
   }
 }
@@ -82,6 +82,9 @@ body {
 /* Cabeçalho */
 .topo { display: flex; flex-direction: column; gap: 6px; }
 .marca { display: flex; align-items: center; gap: 10px; }
+/* Logotipo do condomínio no cabeçalho (definido em config.js) */
+.marca.com-logo { display: block; }
+.logo { display: block; width: 100%; height: auto; aspect-ratio: 750 / 212; object-fit: cover; border-radius: 16px; border: 1px solid var(--linha); }
 .emblema { width: 30px; height: 30px; flex: none; }
 .emblema-fundo { fill: var(--folha); }
 .emblema-folha { fill: var(--folha-tinta); }
