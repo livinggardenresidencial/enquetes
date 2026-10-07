@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administração das enquetes</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="assets/estilo.css">
+</head>
+<body>
+  <div class="pagina larga">
+    <header class="topo barra-admin">
+      <div>
+        <span class="condominio"><span data-condominio>Condomínio</span> · <span data-comissao>Enquetes</span></span>
+        <h1>Administração das enquetes</h1>
+      </div>
+      <button id="sair" type="button" class="secundario pequeno" hidden>Sair</button>
+    </header>
+
+    <p id="estado" class="nota" role="status">Carregando…</p>
+
+    <section id="login" class="cartao" hidden>
+      <h2>Entrar</h2>
+      <form id="form-login" novalidate>
+        <div class="campo">
+          <label class="rotulo" for="login-email">E-mail</label>
+          <input id="login-email" type="email" autocomplete="username" required>
+        </div>
+        <div class="campo">
+          <label class="rotulo" for="login-senha">Senha</label>
+          <input id="login-senha" type="password" autocomplete="current-password" required>
+        </div>
+        <p id="login-msg" class="mensagem" role="alert"></p>
+        <button id="login-botao" type="submit">Entrar</button>
+      </form>
+    </section>
+
+    <main id="painel" class="lista" hidden>
+      <section class="cartao">
+        <h2>Enquetes</h2>
+        <div id="lista-enquetes"><p class="nota">Carregando…</p></div>
+      </section>
+
+      <section class="cartao">
+        <h2>Nova enquete</h2>
+        <form id="form-enquete" novalidate>
+          <div class="campo">
+            <label class="rotulo" for="nova-titulo">Pergunta</label>
+            <input id="nova-titulo" type="text" maxlength="160" placeholder="Qual melhoria deve ser a prioridade do condomínio?" required>
+          </div>
+          <div class="campo">
+            <label class="rotulo" for="nova-descricao">Explicação para os moradores (opcional)</label>
+            <textarea id="nova-descricao" maxlength="2000"></textarea>
+          </div>
+          <div class="campo">
+            <label class="rotulo" for="nova-opcoes">Opções, uma por linha</label>
+            <textarea id="nova-opcoes" placeholder="Aquecimento da piscina&#10;Brinquedoteca&#10;Deck da piscina" required></textarea>
+          </div>
+          <div class="campos">
+            <div class="campo">
+              <label class="rotulo" for="nova-prazo">Encerrar automaticamente em (opcional)</label>
+              <input id="nova-prazo" type="datetime-local">
+            </div>
+            <div class="campo">
+              <label class="rotulo" for="nova-resultado">Gráfico para os moradores</label>
+              <select id="nova-resultado">
+                <option value="sempre">Visível durante a votação</option>
+                <option value="ao_encerrar">Só depois de encerrada</option>
+              </select>
+            </div>
+          </div>
+          <p id="nova-msg" class="mensagem" role="alert"></p>
+          <button id="nova-botao" type="submit">Criar como rascunho</button>
+          <p class="nota">A enquete nasce como rascunho, invisível aos moradores, até você abrir a votação.</p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="rodape"><a href="index.html">Ver a página dos moradores</a></footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="assets/comum.js"></script>
+  <script src="assets/admin.js"></script>
+</body>
+</html>
