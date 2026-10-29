@@ -3,7 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Administração das enquetes</title>
+  <title>Painel das enquetes · Living Garden</title>
+  <meta name="description" content="Acesso restrito aos organizadores das enquetes.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Residencial Living Garden">
+  <meta property="og:title" content="Painel das enquetes · Living Garden">
+  <meta property="og:description" content="Acesso restrito aos organizadores. Para votar, use o link das enquetes.">
+  <meta name="theme-color" content="#f4f8ec" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#11160c" media="(prefers-color-scheme: dark)">
   <meta name="robots" content="noindex">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +21,7 @@
   <div class="pagina larga">
     <header class="topo barra-admin">
       <div>
-        <span class="condominio"><span data-condominio>Condomínio</span> · <span data-comissao>Enquetes</span></span>
+        <span class="condominio"><span data-condominio>Condomínio</span> · <span data-titulo>Enquetes</span></span>
         <h1>Administração das enquetes</h1>
       </div>
       <button id="sair" type="button" class="secundario pequeno" hidden>Sair</button>
@@ -47,6 +54,10 @@
       <section class="cartao">
         <h2>Nova enquete</h2>
         <form id="form-enquete" novalidate>
+          <div class="campo" id="campo-responsavel">
+            <label class="rotulo" for="nova-responsavel">Quem promove a enquete</label>
+            <select id="nova-responsavel"></select>
+          </div>
           <div class="campo">
             <label class="rotulo" for="nova-titulo">Pergunta</label>
             <input id="nova-titulo" type="text" maxlength="160" placeholder="Qual melhoria deve ser a prioridade do condomínio?" required>

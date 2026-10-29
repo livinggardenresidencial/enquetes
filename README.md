@@ -1,4 +1,4 @@
-# Enquetes da Comissão de Melhorias — Residencial Living Garden
+# Enquetes dos moradores — Residencial Living Garden
 
 Site para consultar os moradores. O morador escolhe a torre e o apartamento, informa o nome e vota. Cada apartamento vota uma vez por enquete, e todos acompanham o gráfico do resultado pelo mesmo link, sem cadastro, código ou senha.
 
@@ -69,7 +69,21 @@ Use um e-mail que pertença ao condomínio ou à comissão, não a uma pessoa. A
 
 O aparelho lembra a torre, o apartamento e o nome (se o morador deixar marcado), de modo que nas enquetes seguintes basta escolher a opção e confirmar. Quem prefere menos movimento na tela (configuração de acessibilidade do celular) vê a mesma página sem animações.
 
-O título e a descrição que aparecem quando o link é colado no WhatsApp estão no início do `index.html` (linhas `og:title` e `og:description`).
+### Como o link aparece nas redes
+
+Ao colar o link dos moradores no WhatsApp ou em outra rede, aparecem a imagem de convite (`assets/convite.jpg`), o título e a descrição definidos no início do `index.html` (linhas `og:title`, `og:description` e `og:image`). Para trocar a imagem, substitua o arquivo mantendo o nome e o tamanho de 1200 × 630.
+
+As redes guardam a prévia antiga por um tempo. Para forçar a nova logo depois de uma troca, divulgue o link com `?v=2` no final (por exemplo, `.../enquetes/?v=2`).
+
+Há dois endereços: o dos moradores (`.../enquetes/`), que é o que se divulga, e o da comissão (`.../enquetes/admin.html`), que exige login e não deve ir para os grupos.
+
+---
+
+## Quem promove cada enquete
+
+Cada enquete indica quem a promove (por exemplo, Administração ou Comissão de Melhorias), escolhido no painel ao criá-la. A lista de opções fica em `config.js`, na linha `organizadores`; o primeiro nome é o padrão.
+
+Bancos instalados antes de outubro/2026 precisam rodar uma vez o arquivo `supabase/atualizacao-2026-10.sql` no SQL Editor. Ele não apaga dados, e as enquetes antigas ficam atribuídas à Comissão de Melhorias.
 
 ---
 
