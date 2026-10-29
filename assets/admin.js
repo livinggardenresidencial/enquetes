@@ -131,6 +131,7 @@
     const partes = ["Criada em " + dataHora(enquete.criada_em)];
     if (enquete.encerra_em) partes.push((s === "encerrada" ? "prazo encerrado em " : "encerra em ") + dataHora(enquete.encerra_em));
     partes.push(enquete.resultado === "sempre" ? "gráfico visível durante a votação" : "gráfico só depois de encerrada");
+    if (enquete.visivel === false) partes.push("oculta da página dos moradores");
 
     const aviso = el("p", { class: "mensagem", role: "alert" });
     const detalhe = el("div", { class: "detalhe", hidden: !detalhesAbertos.has(enquete.id) });
@@ -156,9 +157,16 @@
         "Confirmar encerramento",
         () => mudar({ status: "encerrada" }, "Não foi possível encerrar.")));
     }
+    const oculta = enquete.visivel === false;
     if (s === "encerrada") {
       acoes.append(el("button", { type: "button", class: "pequeno secundario", text: "Reabrir votação",
-        onclick: () => mudar({ status: "aberta", encerra_em: null }, "Não foi possível reabrir.") }));
+        onclick: () => mudar(oculta ? { status: "aberta", encerra_em: null, visivel: true } : { status: "aberta", encerra_em: null },
+          "Não foi possível reabrir.") }));
+      // Ocultar: some da página dos moradores, mas continua aqui com votos e resultado.
+      acoes.append(el("button", { type: "button", class: "pequeno secundario",
+        text: oculta ? "Mostrar no site" : "Ocultar do site",
+        onclick: () => mudar({ visivel: oculta },
+          "Não foi possível alterar. Se continuar, rode o arquivo supabase/atualizacao-2026-10.sql no SQL Editor do Supabase.") }));
     }
     if (s !== "rascunho") {
       const ver = el("button", { type: "button", class: "pequeno secundario",
