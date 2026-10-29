@@ -264,6 +264,9 @@ button.link {
 .resumo dd { margin: 0 0 10px; font-weight: 600; overflow-wrap: anywhere; }
 .resumo dd:last-child { margin-bottom: 0; }
 .comprovante-topo { display: flex; align-items: center; gap: 14px; }
+.links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 22px; }
+.links .nota { flex-basis: 100%; }
+td .alterado { display: block; font-size: 0.8rem; color: var(--alerta); }
 .comprovante-topo .nota { margin-top: 2px; }
 
 .visto { width: 52px; height: 52px; flex: none; }

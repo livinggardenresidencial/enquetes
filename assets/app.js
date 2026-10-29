@@ -25,6 +25,10 @@
     opcao_invalida: "Esta opção não está mais disponível. Atualize a página.",
     enquete_inexistente: "Esta enquete não está mais disponível. Atualize a página.",
     falha: "Não foi possível registrar o voto. Verifique a conexão e tente de novo.",
+    sem_permissao: "Este aparelho não pode mudar o voto deste apartamento. Para mudar, procure a administração.",
+    sem_voto: "O voto deste apartamento foi anulado pela administração. Vote novamente.",
+    troca_falha: "Não foi possível mudar o voto. Verifique a conexão e tente de novo.",
+    troca_encerrada: "A votação foi encerrada; o voto não pode mais ser mudado.",
   };
 
   const [resEnquetes, apartamentos] = await Promise.all([
@@ -125,7 +129,7 @@
     let registrado = null;
     try { registrado = JSON.parse(memoria.ler(chaveVoto) || "null"); } catch { registrado = null; }
     if (registrado && porId.has(registrado.apto) && textoOpcao.has(registrado.opcao)) {
-      telaComprovante(registrado, false);
+      telaComprovante(registrado, null);
     } else {
       telaFormulario();
     }
@@ -223,11 +227,19 @@
         confirmar.disabled = corrigir.disabled = true;
         confirmar.textContent = "Registrando…";
         let s = "falha";
+        let token = null;
+        const params = { p_enquete: enquete.id, p_opcao: opcao.id, p_apartamento: apto.id, p_nome: preenchido.nome };
         try {
-          const { data, error } = await cliente.rpc("votar", {
-            p_enquete: enquete.id, p_opcao: opcao.id, p_apartamento: apto.id, p_nome: preenchido.nome,
-          });
-          if (!error && typeof data === "string") s = data;
+          // registrar_voto devolve também a chave que permite mudar o voto depois, neste aparelho
+          const r = await cliente.rpc("registrar_voto", params);
+          if (!r.error && r.data && typeof r.data.situacao === "string") {
+            s = r.data.situacao;
+            token = r.data.token || null;
+          } else if (r.error && /PGRST202|registrar_voto|schema cache/i.test((r.error.code || "") + " " + (r.error.message || ""))) {
+            // banco ainda sem a atualização de troca de voto: vota do jeito antigo
+            const v = await cliente.rpc("votar", params);
+            if (!v.error && typeof v.data === "string") s = v.data;
+          }
         } catch { /* fica como falha */ }
 
         if (s === "ok") {
@@ -238,9 +250,9 @@
             memoria.apagar("enquete:apto");
             memoria.apagar("enquete:nome");
           }
-          const voto = { apto: apto.id, opcao: opcao.id, nome: preenchido.nome, quando: new Date().toISOString() };
+          const voto = { apto: apto.id, opcao: opcao.id, nome: preenchido.nome, quando: new Date().toISOString(), token };
           memoria.gravar(chaveVoto, JSON.stringify(voto));
-          telaComprovante(voto, true);
+          telaComprovante(voto, "votou");
           aoVotar();
           return;
         }
@@ -262,13 +274,78 @@
           el("dd", {}, el("i", { class: "amostra cor-" + opcao.cor, "aria-hidden": "true" }), opcao.texto),
           el("dt", { text: "Apartamento" }), el("dd", { text: rotuloApto(apto) }),
           el("dt", { text: "Votante" }), el("dd", { text: preenchido.nome })),
-        el("p", { class: "nota", text: "Depois de registrado, o voto do apartamento não pode ser alterado." }),
+        el("p", { class: "nota", text: "Depois de registrado, você poderá mudar o voto por este mesmo aparelho enquanto a votação estiver aberta." }),
         mensagem,
         el("div", { class: "botoes" }, confirmar, corrigir)), titulo);
     }
 
+    // ---------- mudar o voto (só neste aparelho, com a chave recebida ao votar)
+    function telaTroca(voto, erro) {
+      const apto = porId.get(voto.apto);
+      const titulo = el("h3", { tabindex: "-1", text: "Mudar o voto" });
+      const mensagem = el("p", { class: "mensagem" + (erro ? " erro" : ""), role: "alert", text: erro || "" });
+      const confirmar = el("button", { type: "submit", text: "Confirmar mudança" });
+      const cancelar = el("button", { type: "button", class: "secundario", text: "Cancelar",
+        onclick: () => telaComprovante(voto, null) });
+
+      const form = el("form", { novalidate: true },
+        el("fieldset", {},
+          el("legend", { text: "Escolha a nova opção" }),
+          opcoes.map((o) =>
+            el("label", { class: "opcao" },
+              el("input", { type: "radio", name: "troca-" + sufixo, value: o.id, checked: o.id === voto.opcao }),
+              el("i", { class: "amostra cor-" + o.cor, "aria-hidden": "true" }),
+              el("span", { class: "opcao-texto", text: o.texto }),
+              el("i", { class: "bolinha", "aria-hidden": "true" })))),
+        mensagem,
+        el("div", { class: "botoes" }, confirmar, cancelar));
+
+      form.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const marcada = form.querySelector('input[name^="troca-"]:checked');
+        const avisar = (texto) => { mensagem.className = "mensagem erro"; mensagem.textContent = texto; };
+        if (!marcada) return avisar("Escolha uma das opções.");
+        if (marcada.value === voto.opcao) return avisar("Essa já é a sua escolha atual.");
+
+        confirmar.disabled = cancelar.disabled = true;
+        confirmar.textContent = "Mudando…";
+        let s = "falha";
+        try {
+          const { data, error } = await cliente.rpc("trocar_voto", {
+            p_enquete: enquete.id, p_apartamento: voto.apto, p_token: voto.token, p_opcao: marcada.value,
+          });
+          if (!error && typeof data === "string") s = data;
+        } catch { /* fica como falha */ }
+        confirmar.disabled = cancelar.disabled = false;
+        confirmar.textContent = "Confirmar mudança";
+
+        if (s === "ok") {
+          const novo = { ...voto, opcao: marcada.value, alterado: new Date().toISOString() };
+          memoria.gravar(chaveVoto, JSON.stringify(novo));
+          telaComprovante(novo, "alterou");
+          aoVotar();
+          return;
+        }
+        if (s === "sem_voto") {
+          memoria.apagar(chaveVoto);
+          Object.assign(preenchido, { opcao: "", apto: voto.apto, nome: voto.nome });
+          telaFormulario(MENSAGENS.sem_voto);
+          aoVotar();
+          return;
+        }
+        if (s === "encerrada" || s === "enquete_inexistente") { aoVotar(); return avisar(MENSAGENS.troca_encerrada); }
+        avisar(MENSAGENS[s] || MENSAGENS.troca_falha);
+      });
+
+      trocar(el("div", { class: "confirmacao" },
+        titulo,
+        el("p", { class: "nota", text: rotuloApto(apto) + ". Você pode mudar enquanto a votação estiver aberta." }),
+        form), titulo);
+    }
+
     // ---------- 3. comprovante
-    function telaComprovante(voto, acabouDeVotar) {
+    function telaComprovante(voto, modo) {
+      const acabouDeVotar = modo === "votou";
       const apto = porId.get(voto.apto);
       const opcao = textoOpcao.get(voto.opcao);
       placar.marcar(opcao.id);
@@ -278,7 +355,7 @@
       const convite = "Já votei na enquete “" + enquete.titulo + "” do " + (cfg.condominio || "condomínio") +
         ". Vote também, leva menos de 1 minuto: " + endereco;
       const copiado = el("span", { class: "nota", role: "status" });
-      const titulo = el("h3", { tabindex: "-1", text: "Voto registrado" });
+      const titulo = el("h3", { tabindex: "-1", text: modo === "alterou" ? "Voto alterado" : "Voto registrado" });
 
       const selinho = svg("svg", { viewBox: "0 0 52 52", class: "visto" + (acabouDeVotar ? " animar" : ""), "aria-hidden": "true" },
         svg("circle", { cx: 26, cy: 26, r: 24, class: "visto-circulo" }),
@@ -292,7 +369,8 @@
           el("dt", { text: "Sua escolha" }),
           el("dd", {}, el("i", { class: "amostra cor-" + opcao.cor, "aria-hidden": "true" }), opcao.texto),
           el("dt", { text: "Apartamento" }), el("dd", { text: rotuloApto(apto) }),
-          el("dt", { text: "Registrado em" }), el("dd", { text: dataHora(voto.quando) })),
+          el("dt", { text: "Registrado em" }), el("dd", { text: dataHora(voto.quando) }),
+          voto.alterado && el("dt", { text: "Alterado em" }), voto.alterado && el("dd", { text: dataHora(voto.alterado) })),
         el("div", { class: "botoes" },
           el("a", { class: "botao whatsapp", target: "_blank", rel: "noopener",
             href: "https://wa.me/?text=" + encodeURIComponent(convite), text: "Convidar vizinhos pelo WhatsApp" }),
@@ -301,12 +379,16 @@
             catch { copiado.textContent = endereco; }
           } })),
         copiado,
-        el("button", { type: "button", class: "link", text: "Votar por outro apartamento", onclick: () => {
-          Object.assign(preenchido, { opcao: "", apto: "", nome: "", lembrar: false, outro: true });
-          telaFormulario();
-        } }));
+        el("div", { class: "links" },
+          voto.token
+            ? el("button", { type: "button", class: "link", text: "Mudar meu voto", onclick: () => telaTroca(voto) })
+            : el("p", { class: "nota", text: "Para mudar este voto, procure a administração." }),
+          el("button", { type: "button", class: "link", text: "Votar por outro apartamento", onclick: () => {
+            Object.assign(preenchido, { opcao: "", apto: "", nome: "", lembrar: false, outro: true });
+            telaFormulario();
+          } })));
 
-      trocar(tela, acabouDeVotar ? titulo : null);
+      trocar(tela, modo ? titulo : null);
       if (acabouDeVotar) {
         if (navigator.vibrate) { try { navigator.vibrate(35); } catch { /* sem vibração */ } }
         chuvaDeFolhas(selinho);

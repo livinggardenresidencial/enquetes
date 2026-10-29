@@ -207,7 +207,7 @@
 
     const [resPlacar, resVotos] = await Promise.all([
       cliente.rpc("resultado", { p_enquete: enquete.id }),
-      cliente.from("votos").select("apartamento_id,opcao_id,nome,criado_em")
+      cliente.from("votos").select("*")
         .eq("enquete_id", enquete.id).order("criado_em", { ascending: true }),
     ]);
     if (resPlacar.error || resVotos.error) {
@@ -231,7 +231,8 @@
         el("td", { class: "num", text: apto ? String(apto.numero) : v.apartamento_id }),
         el("td", { text: v.nome }),
         el("td", { text: nomeOpcao.get(v.opcao_id) || "(opção removida)" }),
-        el("td", { class: "num", text: dataHora(v.criado_em) }),
+        el("td", { class: "num" }, dataHora(v.criado_em),
+          v.alterado_em && el("span", { class: "alterado", text: "alterado em " + dataHora(v.alterado_em) })),
         el("td", { class: "acoes" }, comConfirmacao(
           el("button", { type: "button", class: "pequeno perigo", text: "Anular" }),
           "Confirmar",
