@@ -68,9 +68,12 @@
   }
 
   const ROTULOS = { rascunho: "Rascunho", aberta: "Em votação", encerrada: "Encerrada" };
+  // Selo da situação, seguido de quem promove a enquete (Administração, Comissão...).
   function selo(enquete) {
     const s = situacao(enquete);
-    return el("span", { class: "selo " + s, text: ROTULOS[s] || s });
+    return el("div", { class: "linha-selo" },
+      el("span", { class: "selo " + s, text: ROTULOS[s] || s }),
+      enquete.responsavel && el("span", { class: "promotor", text: enquete.responsavel }));
   }
 
   const CORES = 6; // quantidade de cores definidas no CSS (--cor-1 a --cor-6)
@@ -262,8 +265,8 @@
   document.querySelectorAll("[data-condominio]").forEach((n) => {
     n.textContent = cfg.condominio || "Condomínio";
   });
-  document.querySelectorAll("[data-comissao]").forEach((n) => {
-    n.textContent = cfg.comissao || "Enquetes";
+  document.querySelectorAll("[data-titulo]").forEach((n) => {
+    n.textContent = cfg.titulo || "Enquetes";
   });
 
   window.Enquete = {

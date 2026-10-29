@@ -2,7 +2,7 @@
 (async function () {
   "use strict";
 
-  const { cliente, configurado, el, dataHora, situacao, selo, ordenarOpcoes,
+  const { cfg, cliente, configurado, el, dataHora, situacao, selo, ordenarOpcoes,
           carregarApartamentos, criarPlacar, avisoConfiguracao } = window.Enquete;
   const $ = (id) => document.getElementById(id);
 
@@ -111,7 +111,7 @@
 
   async function carregarEnquetes() {
     const { data, error } = await cliente.from("enquetes")
-      .select("id,titulo,descricao,status,resultado,encerra_em,criada_em,opcoes(id,texto,ordem)")
+      .select("*,opcoes(id,texto,ordem)")
       .order("criada_em", { ascending: false });
     if (error) {
       $("lista-enquetes").replaceChildren(el("p", { class: "mensagem erro", text: "Não foi possível carregar as enquetes." }));
@@ -276,14 +276,27 @@
       p_resultado: $("nova-resultado").value,
       p_encerra_em: prazo ? prazo.toISOString() : null,
       p_opcoes: opcoes,
+      p_responsavel: $("nova-responsavel").value || "Administração",
     });
     botao.disabled = false;
-    if (error) return mensagem(msg, "erro", "Não foi possível criar a enquete. Tente de novo.");
+    if (error) {
+      const desatualizado = /admin_criar_enquete|PGRST202|does not exist|schema cache/i.test((error.code || "") + " " + (error.message || ""));
+      return mensagem(msg, "erro", desatualizado
+        ? "O banco precisa da atualização de outubro: rode o arquivo supabase/atualizacao-2026-10.sql no SQL Editor do Supabase."
+        : "Não foi possível criar a enquete. Tente de novo.");
+    }
 
     ev.target.reset();
     mensagem(msg, "ok", "Rascunho criado. Confira na lista acima e clique em Abrir votação.");
     await carregarEnquetes();
   });
+
+  // Quem pode promover uma enquete (definido em config.js)
+  (function () {
+    const organizadores = (cfg.organizadores && cfg.organizadores.length) ? cfg.organizadores : ["Administração"];
+    $("nova-responsavel").replaceChildren(...organizadores.map((o) => el("option", { value: o, text: o })));
+    $("campo-responsavel").hidden = organizadores.length < 2;
+  })();
 
   // ------------------------------------------------------------------
   // Início

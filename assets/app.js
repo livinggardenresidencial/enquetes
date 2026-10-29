@@ -18,7 +18,7 @@
   }
 
   const MENSAGENS = {
-    ja_votou: "Este apartamento já votou nesta enquete. Se não foi você, procure a comissão.",
+    ja_votou: "Este apartamento já votou nesta enquete. Se não foi você, avise a administração do condomínio.",
     nome_invalido: "Informe o nome completo de quem está votando.",
     apartamento_invalido: "Apartamento não encontrado. Atualize a página e selecione de novo.",
     encerrada: "Esta enquete já foi encerrada.",
@@ -29,7 +29,7 @@
 
   const [resEnquetes, apartamentos] = await Promise.all([
     cliente.from("enquetes")
-      .select("id,titulo,descricao,status,resultado,encerra_em,criada_em,opcoes(id,texto,ordem)")
+      .select("*,opcoes(id,texto,ordem)")
       .order("criada_em", { ascending: false }),
     carregarApartamentos(),
   ]);
@@ -272,9 +272,10 @@
       const opcao = textoOpcao.get(voto.opcao);
       placar.marcar(opcao.id);
 
-      const endereco = location.origin + location.pathname;
-      const convite = "Já votei na enquete “" + enquete.titulo + "” da " + (cfg.comissao || "comissão") +
-        " do " + (cfg.condominio || "condomínio") + ". Vote também, leva menos de 1 minuto: " + endereco;
+      // Link para divulgar: sempre o endereço curto, sem "index.html"
+      const endereco = (location.origin + location.pathname).replace(/index\.html$/, "");
+      const convite = "Já votei na enquete “" + enquete.titulo + "” do " + (cfg.condominio || "condomínio") +
+        ". Vote também, leva menos de 1 minuto: " + endereco;
       const copiado = el("span", { class: "nota", role: "status" });
       const titulo = el("h3", { tabindex: "-1", text: "Voto registrado" });
 
