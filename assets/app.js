@@ -45,7 +45,8 @@
   const torres = [...new Set(apartamentos.map((a) => a.torre))];
   const porId = new Map(apartamentos.map((a) => [a.id, a]));
 
-  const enquetes = resEnquetes.data || [];
+  // Só o que o morador deve ver: nada de rascunho nem de enquete oculta.
+  const enquetes = (resEnquetes.data || []).filter((e) => e.status !== "rascunho" && e.visivel !== false);
   const abertas = enquetes.filter((e) => situacao(e) === "aberta");
   const encerradas = enquetes.filter((e) => situacao(e) === "encerrada");
   const atualizarAbertas = [];

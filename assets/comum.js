@@ -9,8 +9,13 @@
     /^https:\/\/[^/]+/.test(url) && !url.includes("SEU-PROJETO") &&
     chave.length > 20 && !chave.includes("SUA-CHAVE");
 
+  const ehPainel = !!document.getElementById("form-login");
   const cliente = configurado && window.supabase
-    ? window.supabase.createClient(url, chave)
+    ? window.supabase.createClient(url, chave, ehPainel ? {} : {
+        // Página dos moradores: nunca usa o login do painel, para mostrar
+        // exatamente o que um morador vê (sem enquetes ocultas ou rascunhos).
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: "enquetes-publico" },
+      })
     : null;
 
   const semMovimento = () =>
