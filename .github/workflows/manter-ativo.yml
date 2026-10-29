@@ -1,0 +1,22 @@
+name: Manter o banco ativo
+
+on:
+  schedule:
+    - cron: "17 9 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  consulta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Consultar o banco
+        run: |
+          URL=$(grep -oP 'supabaseUrl:\s*"\K[^"]+' config.js)
+          CHAVE=$(grep -oP 'supabaseKey:\s*"\K[^"]+' config.js)
+          curl --fail --silent --show-error "$URL/rest/v1/apartamentos?select=id&limit=1" \
+            -H "apikey: $CHAVE" -H "Authorization: Bearer $CHAVE" > /dev/null
+          echo "Banco respondeu."
